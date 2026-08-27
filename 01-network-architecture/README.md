@@ -69,10 +69,10 @@ The switch is therefore currently operating without VLAN configuration, and the 
                     │ Unmanaged │
                     └─────┬─────┘
                           |
-          ┌───────────────┼───────────────┐
-          │               │               │
-       Client 1        Client 2       Ubuntu Server
-     192.168.10.10    192.168.10.x     192.168.10.100
+          ┌───────────────┼─────────   ....   ──────┐
+          │               │                         │
+       Client 1        Client 2               Ubuntu Server
+     192.168.10.11    192.168.10.12           192.168.10.100
 ```
 
 All hosts currently use the **192.168.10.0/24** network.
@@ -85,13 +85,12 @@ This limitation does not prevent the implementation and testing of the routing, 
 
 The current implemented network uses the following addressing scheme:
 
-| Device        | Interface | IP Address          | Role            |
-| ------------- | --------- | ------------------- | --------------- |
-| VyOS          | LAN       | `192.168.10.1/24`   | Default gateway |
-| Ubuntu Server | `ens3`    | `192.168.10.100/24` | Internal server |
-| PC 1          | —         | `192.168.10.10/24`  | Client          |
-| PC 2          | —         | `192.168.10.x/24`   | Client          |
-| VyOS          | WAN       | DHCP                | Internet access |
+| Device        | Interface | IP Address              | Role            |
+| ------------- | --------- | -------------------     | --------------- |
+| VyOS          | LAN       | `192.168.10.1/24`       | Default gateway |
+| Ubuntu Server | `ens3`    | `192.168.10.100/24`     | Internal server |
+| PC 1 - 10     | —         | `192.168.10.(11-20)/24` | Client          |
+| VyOS          | WAN       | DHCP                    | Internet access |
 
 The planned VLAN addressing scheme is:
 
