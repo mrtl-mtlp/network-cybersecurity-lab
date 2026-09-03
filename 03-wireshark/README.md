@@ -22,6 +22,7 @@ Why this matters:
 - It confirms the **absence of outbound ICMP filtering** on the VyOS firewall: missing Echo Replies despite outgoing Echo Requests would indicate a rule blocking inbound ICMP.
 - Code 0 on every packet rules out any error message (type 3 "Destination Unreachable", type 11 "Time Exceeded"), confirming a stable path with no expired TTL or closed port.
 
+![The 10 filtered ICMP packets, with *No.*, *Time*, *Source*, *Destination*, *Protocol*, *Info* columns visible.](screenshots/icmp.png)
 📸 **Screenshot 1** — insert here: the 10 filtered ICMP packets, with *No.*, *Time*, *Source*, *Destination*, *Protocol*, *Info* columns visible, to visually show the Request/Reply alternation.
 
 ## 3. DNS
