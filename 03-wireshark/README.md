@@ -1,5 +1,6 @@
 # Network Traffic Analysis Report — `full_capture.pcapng`
 
+
 ## 1. Context and methodology
 
 This capture was taken on the Ethernet1 interface of a **VyOS** router/firewall, on the link toward **Switch1 Ethernet0**. It contains **153 packets** over a **164-second** window, recorded with Dumpcap (Wireshark 4.2.2). The analysis was performed locally in Wireshark using successive display filters to isolate each protocol, combined with **Statistics > Conversations**, **Statistics > Protocol Hierarchy**, and **Follow Stream** to reconstruct the application-level exchanges.
@@ -10,6 +11,8 @@ Two LAN hosts appear in the capture:
 - **192.168.10.1 (VyOS router)**: VyOS gateway/firewall.
 
 The overall **Protocol Hierarchy** confirms the traffic breakdown: ARP (14 frames), ICMP (10), UDP/DNS (6) and NTP (8), TCP carrying SSH (37 frames), TLS (15 frames) and HTTP (2 frames). This view is a quick way to confirm no unexpected protocol (P2P, DNS tunneling, exotic ports) is present — a standard first triage step before any deep dive in a professional context.
+
+
 
 ## 2. ICMP
 
@@ -22,8 +25,11 @@ Why this matters:
 - It confirms the **absence of outbound ICMP filtering** on the VyOS firewall: missing Echo Replies despite outgoing Echo Requests would indicate a rule blocking inbound ICMP.
 - Code 0 on every packet rules out any error message (type 3 "Destination Unreachable", type 11 "Time Exceeded"), confirming a stable path with no expired TTL or closed port.
 
-![The 10 filtered ICMP packets, with *No.*, *Time*, *Source*, *Destination*, *Protocol*, *Info* columns visible.](screenshots/icmp.png)
-📸 **Screenshot 1** — insert here: the 10 filtered ICMP packets, with *No.*, *Time*, *Source*, *Destination*, *Protocol*, *Info* columns visible, to visually show the Request/Reply alternation.
+
+![](screenshots/icmp.png)
+The 10 filtered ICMP packets, with *No.*, *Time*, *Source*, *Destination*, *Protocol*, *Length* *Info* columns visible.
+
+
 
 ## 3. DNS
 
@@ -34,8 +40,9 @@ Two distinct resolvers appear in the capture, allowing a side-by-side comparison
 1. **192.168.10.13 → 8.8.8.8** (Google Public DNS): a single `A google.com` query, answered with **172.217.22.110**. That is the exact address pinged in the ICMP section above — the capture shows a full *resolve → connectivity test* cycle.
 2. **192.168.10.100 → 1.1.1.1** (Cloudflare DNS): two queries A (for IPv4) and AAAA (for IPv6) sent in parallel by the OS for `google.com`, answered with **6 round-robin IPv4 addresses** (64.233.188.100 through 64.233.188.139). This is a concrete example of **server-side DNS load balancing**: Google exposes multiple front-end IPs and lets the client pick, a standard high-availability pattern at large providers.
 
+![](screenshots/dns.png)
 
-📸 **Screenshot 2** — insert here: the *Follow UDP Stream* window for the exchange with 1.1.1.1, showing the query and the six returned addresses.
+
 
 ## 4. SSH
 
@@ -54,7 +61,16 @@ They then exchange `Key Exchange Init (20)` messages to negotiate the cryptograp
 The decoding error reported by Wireshark during the key exchange is an analysis/interpretation issue and does not prevent the SSH connection from being successfully established.
 
 
-📸 **Screenshot 3** — insert here: an expanded `SSH_MSG_KEXINIT` packet in the *Packet Details* pane, showing the list of proposed algorithms (kex_algorithms, encryption_algorithms, mac_algorithms).
+![](screenshots/ssh.png)
+SSH Packets with the decoding error
+
+
+#
+![](screenshots/ssh_tcp_stream.png)
+SSH TCP Stream 
+
+
+
 
 ## 5. HTTPS / TLS
 
@@ -71,8 +87,16 @@ One interesting detail: a **cleartext HTTP** request (`GET / HTTP/1.1`, host `go
 HTTP and HTTPS differ mainly in terms of security. HTTP transmits data in clear text, which means that information such as HTTP requests, headers, and content can be observed in a network capture. HTTPS uses TLS to encrypt the communication between the client and the server, making the exchanged data unreadable to an observer.
 
 
-📸 **Screenshot 4** — insert here: the ClientHello detail, with the *Extension: server_name* field expanded to show `google.com`.
-📸 **Screenshot 5** — insert here: the ServerHello detail, with the *Cipher Suite* field showing `TLS_AES_128_GCM_SHA256 (0x1302)` and version `TLS 1.3`.
+![](screenshots/https_stream.png)
+Shows the HTTPS Stream (encrypted)
+
+
+#
+![](screenshots/http_stream.png)
+Shows the HTTP Stream (not encrypted)
+
+
+
 
 ## 6. Firewall analysis (`tcp.port == 22`)
 
@@ -87,7 +111,7 @@ Within the scope of this capture, this supports the conclusion that:
 - there's no evidence of brute-forcing or scanning in this window — a reassuring point for an audit report, while noting that the limited capture duration cannot rule out an attack outside this window.
 It confirms that the firewall configuration works.
 
-📸 **Screenshot 6** — insert here: the `tcp.port==22` filter applied in the Wireshark filter bar, plus a capture of the *Statistics > Conversations* window (TCP tab) showing the single conversation on port 22.
+![](screenshots/firewall_conversation.png)
 
 
 ## 7. Summary
